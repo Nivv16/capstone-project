@@ -1,50 +1,68 @@
 from flask import Flask, jsonify, request
 from tensorflow.keras.models import load_model
-
+import ast  
 
 app = Flask(__name__)
 
-
-model = load_model("learnflow-model-1", compile = false)
-
+model = load_model("learnflow-model-1", compile = False)
 
 @app.route("/")
 def index():
     return jsonify({
         "status": {
-            "code": 200,
-            "message": "success fetching the API"
+            "code" : 200,
+            "message" : "success fetching api"
         },
-        "data": None,
+        "data": None
     }), 200
 
-@app.route("/prediction", methods=["GET", "POST"])
-def prediction():
+@app.route("/predict", methods=["POST"])
+def predict():
     if request.method == "POST":
-        try:
-            input_data_str = request.form.get('input_data')
-            
-            input_data = ast.literal_eval(input_data_str)
-            
-            if not isinstance(input_data, list) or len(input_data) != 10:
-                return jsonify({'message': 'input_data must contain 10 values'}), 400
+        # Handle the POST request 
+        data = request.get_json()
+        if data is not None:
+            try:
+                input_data_str = request.form.get('input_data')
+                input_data = ast.literal_eval(input_data_str)
+                if not isinstance(input_data, list) or len(input_data) != 10:
+                    return jsonify({'message': 'input_data must contain 10 values'}), 400 
+                     # 10 values of data multiple coice (A, B, C, ... , D)
+                
+                # ML model prediction ???
+                
+                results = model.predict(...)  
 
-            # ML model
-
-            return jsonify({'status': 'success'}), 200
-
-        except Exception as e:
-            return jsonify({'error': 'Something went wrong'}), 500
-
+                return jsonify({
+                    "status": {
+                        "code": 200,
+                        #'results': results
+                    },
+                }), 200
+            except Exception as e:
+                return jsonify({
+                    "status": {
+                        "code": 500,
+                        "message": "Internal Server Error"
+                    },
+                    "data": None
+                }), 500
+        else:
+            return jsonify({
+                "status": {
+                    "code": 405,
+                    "message": "Bad Request"
+                },
+                "data": None
+            }), 405
     else:
         return jsonify({
             "status": {
                 "code": 405,
-                "message": "Method not allowed"
+                "message": "Method Not Allowed"
             },
-            "data": None,
+            "data": None
         }), 405
 
-
-if __name__ == "__main__":
+if __name__=="__main__":
     app.run()
