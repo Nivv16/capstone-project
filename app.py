@@ -1,10 +1,9 @@
 from flask import Flask, jsonify, request
-from tensorflow.keras.models import load_model
-import ast  
+from keras.models import load_model
 
 app = Flask(__name__)
 
-model = load_model("learnflow-model-1", compile = False)
+model = load_model("learnflow-model-1.h5")
 
 @app.route("/")
 def index():
@@ -20,41 +19,10 @@ def index():
 def predict():
     if request.method == "POST":
         # Handle the POST request 
-        data = request.get_json()
-        if data is not None:
-            try:
-                input_data_str = request.form.get('input_data')
-                input_data = ast.literal_eval(input_data_str)
-                if not isinstance(input_data, list) or len(input_data) != 10:
-                    return jsonify({'message': 'input_data must contain 10 values'}), 400 
-                     # 10 values of data multiple coice (A, B, C, ... , D)
-                
-                # ML model prediction ???
-                
-                results = model.predict(...)  
-
-                return jsonify({
-                    "status": {
-                        "code": 200,
-                        #'results': results
-                    },
-                }), 200
-            except Exception as e:
-                return jsonify({
-                    "status": {
-                        "code": 500,
-                        "message": "Internal Server Error"
-                    },
-                    "data": None
-                }), 500
-        else:
-            return jsonify({
-                "status": {
-                    "code": 405,
-                    "message": "Bad Request"
-                },
-                "data": None
-            }), 405
+        sentences = request.form.get('input_data')
+        pred = model.predict(sentences)
+        results = pred()
+        return jsonify({'results': results})
     else:
         return jsonify({
             "status": {
